@@ -20,12 +20,12 @@ Pod::Spec.new do |s|
   }
   
   s.source = { 
-    :git        => 'https://github.com/AlexanderBaranowski/mobile-buy-sdk-ios.git', 
+    :git        => 'https://github.com/AlexanderBaranowski/mobile-buy-sdk-ios.git',
     :tag        => s.version, 
     :submodules => true 
   }
   
-  s.source_files         = 'Buy/**/*.{h,m,c,swift}', 'Dependencies/Swift Gen/support/Sources/GraphQL.swift'
+  s.source_files         = 'Buy/**/*.{h,m,c,swift}', 'https://github.com/AlexanderBaranowski/graphql_swift_gen/support/Sources/GraphQL.swift'
   s.ios.source_files     = 'Pay/**/*.{swift}'
   s.watchos.source_files = 'Pay/**/*.{swift}'
   
