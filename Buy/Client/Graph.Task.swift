@@ -50,25 +50,27 @@ internal extension Graph {
         internal private(set) var isResumed:   Bool = false
         internal private(set) var isCancelled: Bool = false
         
-        internal let cache:        Cache
-        internal let session:      URLSession
-        internal let request:      URLRequest
-        internal let cachePolicy:  CachePolicy
-        internal let retryHandler: RetryHandler<R>?
-        internal let completion:   TaskCompletion
+        internal let cache:             Cache
+        internal let session:           URLSession
+        internal let request:           URLRequest
+        internal let cachePolicy:       CachePolicy
+        internal let retryHandler:      RetryHandler<R>?
+        internal let completion:        TaskCompletion
+        internal let completionQueue:   DispatchQueue
         
-        internal var task:         URLSessionDataTask?
+        internal var task:              URLSessionDataTask?
         
         // ----------------------------------
         //  MARK: - Init -
         //
-        internal init(session: URLSession, cache: Cache, request: URLRequest, cachePolicy:  CachePolicy, retryHandler: RetryHandler<R>? = nil, completion: @escaping TaskCompletion) {
-            self.cache        = cache
-            self.session      = session
-            self.request      = request
-            self.cachePolicy  = retryHandler == nil ? cachePolicy : .networkOnly
-            self.retryHandler = retryHandler
-            self.completion   = completion
+        internal init(session: URLSession, cache: Cache, request: URLRequest, cachePolicy:  CachePolicy, retryHandler: RetryHandler<R>? = nil, completion: @escaping TaskCompletion, completionQueue: DispatchQueue = DispatchQueue.main) {
+            self.cache              = cache
+            self.session            = session
+            self.request            = request
+            self.cachePolicy        = retryHandler == nil ? cachePolicy : .networkOnly
+            self.retryHandler       = retryHandler
+            self.completion         = completion
+            self.completionQueue    = completionQueue
         }
 
         // ----------------------------------
@@ -211,7 +213,7 @@ internal extension Graph {
                 
                 let (model, error) = self.processResponse(data, response, error)
                 
-                DispatchQueue.main.async {
+                self.completionQueue.async {
                     if var retryHandler = retryHandler, retryHandler.canRetry, retryHandler.condition(model, error) == true {
                         
                         /* ---------------------------------
@@ -223,7 +225,7 @@ internal extension Graph {
                         
                         self.task = self.graphTaskWith(request, retryHandler: retryHandler, completion: completion)
                         
-                        DispatchQueue.main.asyncAfter(deadline: .now() + retryHandler.interval) {
+                        self.completionQueue.asyncAfter(deadline: .now() + retryHandler.interval) {
                             if self.task!.state == .suspended {
                                 self.task!.resume()
                             }
